@@ -14,8 +14,7 @@
 3. Stream to multiple clients (concurrency + real time updates)
     1. Able to stream to multiple client and output to should be similar to `docker -f`
 4. cgroups testing commands (TBD)
-
-# Coverage
-1. Basic unit tests
-2. Test with `-race` flag
-3. govulncheck
+5. Coverage 
+    1. Basic unit tests
+    2. Test with `-race` flag
+    3. govulncheck
