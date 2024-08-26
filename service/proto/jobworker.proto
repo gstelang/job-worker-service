@@ -13,8 +13,7 @@ service JobWorker {
 
 // {
 //     "command_args": [
-//         "-ltra",
-//         "while true; do echo `date`; sleep 1; done"
+//         "-ltra"
 //     ],
 //     "command_name": "ls"
 // }
