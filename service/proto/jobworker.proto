@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+option go_package = "github.com/gstelang/job-worker-service/service/proto";
+
+package jobworker;
+
+service JobWorker {
+    rpc StartJob (StartJobRequest) returns (StartJobResponse);
+    rpc StopJob (StopJobRequest) returns (StopJobResponse);
+    rpc QueryJob (QueryJobRequest) returns (QueryJobResponse);
+    rpc StreamLogs (StreamLogsRequest) returns (stream StreamLogsResponse);
+}
+
+// {
+//     "command_args": [
+//         "-ltra",
+//         "while true; do echo `date`; sleep 1; done"
+//     ],
+//     "command_name": "ls"
+// }
+message StartJobRequest {
+    string command_name = 1;
+    repeated string command_args = 2;
+}
+
+// {
+//     "job_id": "761db04c-0150-4f0b-a6fd-5cab9b9a48bf",
+// }
+message StartJobResponse {
+    string job_id = 1;
+}
+
+message StopJobRequest {
+    string job_id = 1;
+}
+
+// {
+//     "success": "true",
+// }
+message StopJobResponse {
+    bool success = 1;
+}
+
+message QueryJobRequest {
+    string job_id = 1;
+}
+
+// {
+//     "message": "jobID 761db04c-0150-4f0b-a6fd-5cab9b9a48bf is [running|exited]",
+// }
+message QueryJobResponse {
+    string message = 1;
+}
+
+message StreamLogsRequest {
+    string job_id = 1;
+}
+
+// sample streaming response
+// {
+//     "message": "2024-08-26T11:35:21Z [INFO] Server started on port 8080",
+// }
+message StreamLogsResponse {
+    string message = 1;
+}
