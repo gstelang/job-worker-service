@@ -23,7 +23,17 @@
     }
 }
 ```
-* I will be utilizing Go's os/exec specifically [exec.Command](https://pkg.go.dev/os/exec#Command) to start and gather information on process and signal status. Exit code or signal info on job's end of execution will be captured and stored till server's lifetime.
+* Start & Stop command: Go's os/exec will be utilized specifically [exec.Command](https://pkg.go.dev/os/exec#Command) for Start/Stop command and gather information on process and signal status. Exit code or signal info on job's end of execution will be captured and stored till server's lifetime.
+* Query: This would be a inmemory lookup on the jobID
+* Stream: All the logs since the start of process execution and all the real time updates will be streamed to connected clients. A possible implementation would be 
+```
+1. Maintain a map of job IDs to channels that receive new logs.
+2. When a streaming request is received, create a new channel if one does not already exist for the job ID.
+3. Write new logs to both the channel and the in-memory map of job details, ensuring that logs are stored and streamed simultaneously.
+4. The server listens to this channel for new log entries.
+5. Maintain a map of streaming clients associated with each job ID to track which clients are streaming logs for a particular job.
+6. Broadcast log entries from the channel to all connected streaming clients associated with the job ID.
+```
 
 # Architecture diagram
 
@@ -85,7 +95,7 @@ example output: job with id 761db04c-0150-4f0b-a6fd-5cab9b9a48bf started with re
 ![Authorization](authorization.png)
 
 # TLS Setting
-1. For the purpose of this project, allowing only clients with TLS1.3. As per docs [here](https://pkg.go.dev/crypto/tls@master) and [here](https://go-review.googlesource.com/c/go/+/314609), cipher suite selection with tls 1.3 is automatic. Here's the Go code server side, I plan to use.
+1. For the purpose of this project, allowing only clients with TLS1.3. As per docs [here](https://pkg.go.dev/crypto/tls@master) and [here](https://go-review.googlesource.com/c/go/+/314609), cipher suite selection with tls 1.3 is automatic. Here's the sample Go code server side that I plan to use.
 ```go
 	creds := credentials.NewTLS(&tls.Config{
 		MinVersion:   tls.VersionTLS13, // Only allow TLS 1.3
