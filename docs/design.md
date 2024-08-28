@@ -49,14 +49,38 @@ Output:
 example output: job with id 761db04c-0150-4f0b-a6fd-5cab9b9a48bf started with resource limits.
 ```
 
-# Security (Authn/Authz)
-* Authentication: Use openssl to generate certificates to implement mTLS i.e verify identity of both client and server.
+# Authentication
+* Communication between client and server will be with mutual TLS i.e both needs to verify their identity. 
+* Use openssl to generate certificates. A certificate authority will sign all the clients and server cert.
+
+# Authorization
 * Role based authorization: Control access based on user roles.
     1. Only 2 roles - Admin and User.
     2. Admin can do all operations permitted  
         1. Start, stop, query and stream  
         2. Start the process with the resource limits - CPU, memory and disk only.
     3. User can only query and stream 
+* Implementation:
+    * 2 client certs with embedded OIDs (object identifiers) will be generated using openssl. This approach ties authentication (who you are) directly to authorization (what you're allowed to do).
+    * The server can make authorization decisions based on the role OID in the client certificate.
+![Authorization](authorization.png)
+
+# TLS Setting
+1. For the purpose of this project, allowing only clients with TLS1.3. As per docs [here](https://pkg.go.dev/crypto/tls@master) and [here](https://go-review.googlesource.com/c/go/+/314609), cipher suite selection with tls 1.3 is automatic. Here's the Go code server side, I plan to use.
+```go
+	creds := credentials.NewTLS(&tls.Config{
+		MinVersion:   tls.VersionTLS13, // Only allow TLS 1.3
+		MaxVersion:   tls.VersionTLS13, // Only allow TLS 1.3
+		Certificates: []tls.Certificate{cert},
+		ClientCAs:    caCertPool,
+		ClientAuth:   tls.RequireAndVerifyClientCert,
+	})
+```
+
+# Certs for mTLS
+* All certs will be created with key size of 4096 bits using RSA.
+* SHA-256 will be used as a hashing algorithm for signing certs.
+* CA and server certs will be valid for 365 days whereas a shorter validity period (45 days) will be provided for client certs. This is to emphasize rotation and renewal. 
 
 # Out of scope
 * State of job will not persist after restarts i.e no persistent storage such as log files or local sqllite database.
