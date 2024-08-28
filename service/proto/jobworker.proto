@@ -44,11 +44,11 @@ message QueryJobRequest {
     string job_id = 1;
 }
 
-// {
-//     "message": "jobID 761db04c-0150-4f0b-a6fd-5cab9b9a48bf is [running|exited]",
-// }
 message QueryJobResponse {
-    string message = 1;
+    string status = 1;    // Indicates if the job is running or killed|exited
+    int32 pid = 2;        // Process ID of the job
+    int32 exit_code = 3;  // Exit code if the job has exited
+    int32 signal = 4;     // Signal used to terminate the job, if applicable
 }
 
 message StreamLogsRequest {

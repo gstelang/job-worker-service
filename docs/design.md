@@ -6,6 +6,25 @@
 
 * https://github.com/gravitational/careers/blob/main/challenges/systems/challenge-1.md#level-4
 
+# Job management 
+* All the jobs details since the start of the server will be stored in memory.
+```json
+{
+    "e17980c1-cbdc-46f9-a302-cf39b8bba501": {
+        "status": "running|exited|signaled",
+        "pid": 123,
+        "exit_code": "EXIT_CODE_INT",
+        "signal": "SIG_CODE_INT",
+        "logs": [
+            "foo happened at start",
+            "bar thereafter after 1 sec",
+            "...."
+        ]
+    }
+}
+```
+* I will be utilizing Go's os/exec specifically [exec.Command](https://pkg.go.dev/os/exec#Command) to start and gather information on process and signal status. Exit code or signal info on job's end of execution will be captured and stored till server's lifetime.
+
 # Architecture diagram
 
 ![Design Diagram](job-worker-service.png)
