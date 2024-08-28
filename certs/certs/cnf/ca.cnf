@@ -30,5 +30,3 @@ keyUsage = critical, keyCertSign, cRLSign
 
 # CRL Distribution Points: Specifies where the Certificate Revocation List can be found
 # crlDistributionPoints = URI:http://localhost/crl/ca.crl
-
-# emailAddress=gstelang@gmail.com
