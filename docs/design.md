@@ -111,6 +111,8 @@ example output: job with id 761db04c-0150-4f0b-a6fd-5cab9b9a48bf started with re
 * SHA-256 will be used as a hashing algorithm for signing certs.
 * CA and server certs will be valid for 365 days whereas a shorter validity period (45 days) will be provided for client certs. This is to emphasize rotation and renewal. 
 
+# cgroups
+
 # Out of scope
 * State of job will not persist after restarts i.e no persistent storage such as log files or local sqllite database.
 
