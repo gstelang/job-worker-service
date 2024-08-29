@@ -90,7 +90,7 @@ Output:
 ![Authorization](authorization.png)
 
 # TLS Setting
-* Although TLS 1.2 is [widely adopted](https://www.ssllabs.com/ssl-pulse/), transitioning to TLS 1.3 can mitigate future compatibility issues with legacy clients. TLS 1.3 provides several benefits including [a faster handshake, Perfect Forward Secrecy (PFS) and zero round-trip time (0-RTT)](https://www.rfc-editor.org/rfc/rfc8446.html#section-1.2), all of which enhance security and possibly performance in streaming scenarios. 
+* Although TLS 1.2 is [still widely used](https://www.ssllabs.com/ssl-pulse/), transitioning to TLS 1.3 can mitigate future compatibility issues with legacy clients. TLS 1.3 provides several benefits including [a faster handshake, Perfect Forward Secrecy (PFS) and zero round-trip time (0-RTT)](https://www.rfc-editor.org/rfc/rfc8446.html#section-1.2), all of which enhance security and possibly performance in streaming scenarios. 
 * For this project, we will mandate the use of TLS 1.3 for all clients. As per docs [here](https://pkg.go.dev/crypto/tls@master) and [here](https://go-review.googlesource.com/c/go/+/314609), TLS 1.3 automatically handles cipher suite selection. Below is the sample server code configured to support only TLS 1.3:
 
 ```go
