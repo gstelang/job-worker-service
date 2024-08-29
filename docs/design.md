@@ -72,11 +72,6 @@ Output:
 ......
 ......
 ```
-5. Start with resource limits
-```
-./worker-service start -command "sort" "largefile.txt -o sortedfile.txt" --cpu-limit 512 --memory-limit 500M --disk-limit 500
-example output: job with id 761db04c-0150-4f0b-a6fd-5cab9b9a48bf started with resource limits.
-```
 
 # Authentication
 * Communication between client and server will be with mutual TLS i.e both needs to verify their identity. 
@@ -111,7 +106,16 @@ example output: job with id 761db04c-0150-4f0b-a6fd-5cab9b9a48bf started with re
 * SHA-256 will be used as a hashing algorithm for signing certs.
 * CA and server certs will be valid for 365 days whereas a shorter validity period (45 days) will be provided for client certs. This is to emphasize rotation and renewal. 
 
-# cgroups
+# Resource Limiting Strategy
+* The optimal approach to setting resource limits is to monitor the current system load and enforce limits dynamically when the load average exceeds a threshold. Unix tools located under `/proc/` can provide this system load information.
+* For this project, a time-based resource scheduling strategy will be implemented. This strategy will adjust resource limits according to peak and off-peak hours, ensuring that resources are allocated more efficiently during high-demand periods.
+* The following limits will be applied:
+```
+cpu-limit: 512 (half of the CPU share)
+memory-limit: 500M
+disk-limit: 500
+```
+* After a job completes or is terminated, the associated cgroup will be cleaned up to reclaim resources and prevent system clutter.
 
 # Out of scope
 * State of job will not persist after restarts i.e no persistent storage such as log files or local sqllite database.
