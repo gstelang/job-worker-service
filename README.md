@@ -13,6 +13,7 @@
     2. Running process (simulate by infinite do while loop)
 3. Stream to multiple clients (concurrency + real time updates)
     1. Able to stream to multiple client and output to should be similar to `docker -f`
+    2. Test logs that outputs non-UTF-8 encoded content.
 4. cgroups testing
     1. Make sure resource limits are enforced based on time of the day. Check 
     ```

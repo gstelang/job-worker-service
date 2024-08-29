@@ -60,5 +60,5 @@ message StreamLogsRequest {
 //     "message": "2024-08-26T11:35:21Z [INFO] Server started on port 8080",
 // }
 message StreamLogsResponse {
-    string message = 1;
+    bytes message = 1;
 }
