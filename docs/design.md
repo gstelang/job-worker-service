@@ -90,15 +90,17 @@ Output:
 ![Authorization](authorization.png)
 
 # TLS Setting
-1. For the purpose of this project, allowing only clients with TLS1.3. As per docs [here](https://pkg.go.dev/crypto/tls@master) and [here](https://go-review.googlesource.com/c/go/+/314609), cipher suite selection with tls 1.3 is automatic. Here's the sample Go code server side that I plan to use.
+* Although TLS 1.2 is [widely adopted](https://www.ssllabs.com/ssl-pulse/), transitioning to TLS 1.3 can mitigate future compatibility issues with legacy clients. TLS 1.3 provides several benefits including [a faster handshake, Perfect Forward Secrecy (PFS) and zero round-trip time (0-RTT)](https://www.rfc-editor.org/rfc/rfc8446.html#section-1.2), all of which enhance security and possibly performance in streaming scenarios. 
+* For this project, we will mandate the use of TLS 1.3 for all clients. As per docs [here](https://pkg.go.dev/crypto/tls@master) and [here](https://go-review.googlesource.com/c/go/+/314609), TLS 1.3 automatically handles cipher suite selection. Below is the sample server code configured to support only TLS 1.3:
+
 ```go
-	creds := credentials.NewTLS(&tls.Config{
-		MinVersion:   tls.VersionTLS13, // Only allow TLS 1.3
-		MaxVersion:   tls.VersionTLS13, // Only allow TLS 1.3
-		Certificates: []tls.Certificate{cert},
-		ClientCAs:    caCertPool,
-		ClientAuth:   tls.RequireAndVerifyClientCert,
-	})
+creds := credentials.NewTLS(&tls.Config{
+	MinVersion:   tls.VersionTLS13, // Enforce TLS 1.3
+	MaxVersion:   tls.VersionTLS13, // Enforce TLS 1.3
+	Certificates: []tls.Certificate{cert},
+	ClientCAs:    caCertPool,
+	ClientAuth:   tls.RequireAndVerifyClientCert,
+})
 ```
 
 # Certs for mTLS
