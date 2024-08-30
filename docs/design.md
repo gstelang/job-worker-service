@@ -86,6 +86,8 @@ Output:
     3. User can only query and stream 
 * Implementation:
     * 2 client certs with embedded OIDs (object identifiers) will be generated using openssl. This approach ties authentication (who you are) directly to authorization (what you're allowed to do).
+    * The Admin OID `1.3.6.1.4.1.12345.1.1` is included in config file (here)[../certs/cnf/admin.cnf] 
+    * The User OID `1.3.6.1.4.1.12345.1.2` is included in config file (here)[../certs/cnf/user.cnf] 
     * The server can make authorization decisions based on the role OID in the client certificate.
 ![Authorization](authorization.png)
 
@@ -109,9 +111,8 @@ creds := credentials.NewTLS(&tls.Config{
 * CA and server certs will be valid for 365 days whereas a shorter validity period (45 days) will be provided for client certs. This is to emphasize rotation and renewal. 
 
 # Resource Limiting Strategy
-* The optimal approach to setting resource limits is to monitor the current system load and enforce limits dynamically when the load average exceeds a threshold. Unix tools located under `/proc/` can provide this system load information.
-* For this project, a time-based resource scheduling strategy will be implemented. This strategy will adjust resource limits according to peak and off-peak hours, ensuring that resources are allocated more efficiently during high-demand periods.
-* The following limits will be applied:
+* The optimal approach to setting resource limits is to monitor the current system load and enforce limits dynamically when the load average exceeds a threshold. Unix tools located under `/proc/` can provide this system load information. Alternate strategy is to use a time-based resource scheduling strategy based on peak/off-peak hours.
+* For simplicity, following static values will be set per job:
 ```
 cpu-limit: 512 (half of the CPU share)
 memory-limit: 500M
