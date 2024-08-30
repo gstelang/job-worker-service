@@ -86,8 +86,8 @@ Output:
     3. User can only query and stream 
 * Implementation:
     * 2 client certs with embedded OIDs (object identifiers) will be generated using openssl. This approach ties authentication (who you are) directly to authorization (what you're allowed to do).
-    * The Admin OID `1.3.6.1.4.1.12345.1.1` is included in config file (here)[../certs/cnf/admin.cnf] 
-    * The User OID `1.3.6.1.4.1.12345.1.2` is included in config file (here)[../certs/cnf/user.cnf] 
+    * The Admin OID `1.3.6.1.4.1.12345.1.1` is included in config file [here](../certs/cnf/admin.cnf)
+    * The User OID `1.3.6.1.4.1.12345.1.2` is included in config file [here](../certs/cnf/user.cnf)
     * The server can make authorization decisions based on the role OID in the client certificate.
 ![Authorization](authorization.png)
 
