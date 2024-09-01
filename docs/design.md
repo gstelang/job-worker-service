@@ -25,15 +25,33 @@
 ```
 * Start & Stop command: Go's os/exec will be utilized specifically [exec.Command](https://pkg.go.dev/os/exec#Command) for Start/Stop command and gather information on process and signal status. Exit code or signal info on job's end of execution will be captured and stored till server's lifetime.
 * Query: This would be a inmemory lookup on the jobID
-* Stream: All the logs since the start of process execution and all the real time updates will be streamed to connected clients. A possible implementation would be 
-```
-1. Maintain a map of job IDs to channels that receive new logs.
-2. When a streaming request is received, create a new channel if one does not already exist for the job ID.
-3. Write new logs to both the channel and the in-memory map of job details, ensuring that logs are stored and streamed simultaneously.
-4. The server listens to this channel for new log entries.
-5. Maintain a map of streaming clients associated with each job ID to track which clients are streaming logs for a particular job.
-6. Broadcast log entries from the channel to all connected streaming clients associated with the job ID.
-```
+
+# Streaming gRPC: Handling high volume log generation with multiple clients
+* gRPC Flow Control: While gRPC provides HTTP/2 flow control, additional configurations may be required to handle high log generation volumes and multiple clients subscribing to the same log stream.
+
+1. Stream Initialization:
+    1. When a stream request is made, the server should first send the client all existing logs up to that point in time.
+    2. Create a buffered channel for real-time logs if one doesn’t already exist for the job. This channel helps prevent overwhelming the client by regulating the flow of new log entries.
+    3. The server listens on the buffered channel and streams logs to the client in real-time.
+    4. Handling Client Disconnections:
+         1. Use keepalive settings: Send pings every 10 minutes. Wait for ack for 20 sec. Timeout after 30 mins of inactivity.
+2. Handling Burstable Logs:
+    1. This design can accommodate bursty logs by using buffered channels to regulate log flow to clients.
+3. Trade-offs and Enhancements (Nice-to-Have Features):
+    1. Ring Buffer for Logs:
+        * For jobs producing a high volume of stdout/stderr, the client may be overwhelmed by the sheer volume of existing logs before it catches up to real-time logs.
+        * A ring buffer that holds the most recent X log entries can mitigate this, allowing the client to receive the latest logs without being flooded by the backlog.
+    2. Buffer Management for High Data Volumes:
+        * Maintain a buffer per client on the server to accumulate logs.
+        * Periodically flush the buffer either at fixed intervals (e.g., every second) or when a certain number of entries are accumulated.
+    3. Limiting Active Clients: Set a maximum number of concurrent active clients on the server. If the server reaches capacity, return an error to new clients (e.g., "Max capacity reached").
+    4. Test and configure server options can be configured including 
+        1. Initial window size: This is for each individual stream. Amount that can be snet without waiting for ack.
+        2. Connection window size. This governs all of the connection, regardless how many are active. 
+        3. Set MaxConcurrentStreams appropriately. 
+        4. MaxSendMsgSize (Max message size a server can send)
+4. Client considerations:
+    1. Use context timeouts so if the server does not respond, it can close the connection. (Note: Reconnection is nice to have but out of scope for this exercise)
 
 # Architecture diagram
 
@@ -121,7 +139,10 @@ disk-limit: 500
 * After a job completes or is terminated, the associated cgroup will be cleaned up to reclaim resources and prevent system clutter.
 
 # Out of scope
-* State of job will not persist after restarts i.e no persistent storage such as log files or local sqllite database.
+* State of job will not persist after restarts i.e no persistent storage such as log files or local sqllite database. 
+    Other than easing load on the server, persistent storage would have several benefits including:
+    1. Allowing new clients to request past logs without needing a ring buffer if there's a high volume of log generation by a particular job.
+    2. Implement a mechanism to replay logs from a specific point, enabling clients to catch up on missed entries.
 
 # Non-functional requirements
 * Security: Should pass vulncheck
