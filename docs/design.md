@@ -37,7 +37,7 @@
          1. Use keepalive settings: Send pings every 10 minutes. Wait for ack for 20 sec. Timeout after 30 mins of inactivity.
 2. Handling Burstable Logs:
     1. This design can accommodate bursty logs by using buffered channels to regulate log flow to clients.
-3. Trade-offs and Enhancements (Nice-to-Have Features):
+3. Enhancements (Nice-to-Have Features):
     1. Ring Buffer for Logs:
         * For jobs producing a high volume of stdout/stderr, the client may be overwhelmed by the sheer volume of existing logs before it catches up to real-time logs.
         * A ring buffer that holds the most recent X log entries can mitigate this, allowing the client to receive the latest logs without being flooded by the backlog.
