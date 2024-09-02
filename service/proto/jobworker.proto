@@ -27,6 +27,7 @@ message StartJobRequest {
 // }
 message StartJobResponse {
     string job_id = 1;
+    string message = 2;
 }
 
 message StopJobRequest {
@@ -38,6 +39,7 @@ message StopJobRequest {
 // }
 message StopJobResponse {
     bool success = 1;
+    string message = 2;
 }
 
 message QueryJobRequest {
@@ -49,6 +51,7 @@ message QueryJobResponse {
     int32 pid = 2;        // Process ID of the job
     int32 exit_code = 3;  // Exit code if the job has exited
     int32 signal = 4;     // Signal used to terminate the job, if applicable
+    string message = 5;
 }
 
 message StreamLogsRequest {
