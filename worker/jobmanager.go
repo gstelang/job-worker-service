@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"syscall"
@@ -91,11 +90,12 @@ func (jm *JobManager) Start(command Command) (jobID string, err error) {
 		scanner := bufio.NewScanner(stdout)
 		for scanner.Scan() {
 			line := scanner.Bytes()
-			jm.logger.AddLog(jobID, append([]byte(nil), line...)) // Copy line to avoid reuse
+			// Copy line to avoid reuse
+			jm.logger.AddLog(jobID, append([]byte(nil), line...))
 		}
 
 		if err := scanner.Err(); err != nil {
-			log.Printf("Error reading from command output: %v", err)
+			fmt.Printf("Error reading from command output: %v", err)
 		}
 	}()
 
@@ -108,7 +108,7 @@ func (jm *JobManager) Query(jobID string) (JobSummary, error) {
 	// Retrieve job details
 	jobSummary, err := jm.details.GetJobSummary(jobID)
 	if err != nil {
-		return jobSummary, fmt.Errorf("job not found: %v", err)
+		return jobSummary, err
 	}
 	return jobSummary, nil
 }
@@ -118,7 +118,7 @@ func (store *JobManager) Stop(jobID string) (bool, error) {
 	// Retrieve job details
 	jobDetails, err := store.details.GetJobDetails(jobID)
 	if err != nil {
-		return false, fmt.Errorf("job not found: %v", err)
+		return false, err
 	}
 
 	// Send termination signal to the process
@@ -141,7 +141,7 @@ func (jm *JobManager) Stream(ctx context.Context, jobID string) ([][]byte, chan 
 	// Retrieve existing logs
 	existingLogs, err := jm.logger.GetLogs(jobID)
 	if err != nil {
-		return nil, nil, fmt.Errorf("error retrieving logs: %w", err)
+		return nil, nil, err
 	}
 
 	// Create or get the log channel for real-time logs

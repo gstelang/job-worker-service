@@ -1,6 +1,6 @@
 package worker
 
-// TODO: Separated into 2 interfaces.
+// the 2 interfaces below can be clubbed together. I was adding too many methods at this point and remembered Rob pike's "Bigger the interface, weaker the abstraction..."
 
 // JobLogger defines operations for logging job-related information.
 type JobLogger interface {

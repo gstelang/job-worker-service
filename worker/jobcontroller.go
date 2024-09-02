@@ -8,7 +8,7 @@ type Command struct {
 	Args []string
 }
 
-// Worker interface defines the operations on jobs
+// JobController interface (worker) defines the operations on jobs
 type JobController interface {
 	Start(command Command) (jobID string, err error)
 	Stop(jobID string) (ok bool, err error)
