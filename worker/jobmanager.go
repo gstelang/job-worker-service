@@ -14,8 +14,8 @@ import (
 const (
 	DefaultCPULimit    = 50000     // 50% of 1 core
 	DefaultMemoryLimit = 104857600 // 2^20 bytes = 100 MB.
-	// Set I/O limit to 50MB read and 20MB write per second for a device with major:minor 8:0
-	DefaultDiskIOLimit = "8:0 52428800 20971520"
+	// Set I/O weight to 500 (range is 1-1000, 100 is default)
+	DefaultDiskIOWeight = 500
 )
 
 // JobManager is composed of jobLogger and implements the controller interface
@@ -77,7 +77,7 @@ func (jm *JobManager) Start(command Command) (jobID string, err error) {
 		}
 	}()
 
-	jm.resource.SetLimits(jobID, DefaultCPULimit, DefaultMemoryLimit, DefaultDiskIOLimit)
+	jm.resource.SetLimits(jobID, DefaultCPULimit, DefaultMemoryLimit, DefaultDiskIOWeight)
 
 	// Create the command and attach stdout pipe
 	cmd := exec.Command(command.Name, command.Args...)
@@ -91,12 +91,6 @@ func (jm *JobManager) Start(command Command) (jobID string, err error) {
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
 		return "", fmt.Errorf("error creating stderr pipe: %w", err)
-	}
-
-	// Start the command
-	if err := cmd.Start(); err != nil {
-		jm.logger.AddLog(jobID, []byte(fmt.Sprintf("Failed to start the command: %v", err)))
-		return "", fmt.Errorf("failed to start command: %w", err)
 	}
 
 	// Start the process in the cgroup

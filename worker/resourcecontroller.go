@@ -11,18 +11,17 @@ import (
 )
 
 type ResourceController interface {
-	SetLimits(jobID string, cpuLimit int, memoryLimit int, diskIOLimit string) error
-	GetLimits(jobID string) (cpuLimit int, memoryLimit int, diskIOLimit string, err error)
+	SetLimits(jobID string, cpuLimit int, memoryLimit int, diskIOWeight int) error
+	GetLimits(jobID string) (cpuLimit int, memoryLimit int, diskIOWeight int, err error)
 	CreateCgroup(jobID string) error
 	StartProcessInCgroup(jobID string, cmd *exec.Cmd) error
 	CleanupCgroup(jobID string) error
 }
 
 type ResourceLimits struct {
-	CPULimit    int
-	MemoryLimit int
-	// Setting it to string for simplicity
-	DiskIOLimit string
+	CPULimit     int
+	MemoryLimit  int
+	DiskIOWeight int
 }
 
 type ResourceManager struct {
@@ -36,25 +35,25 @@ func NewResourceManager() *ResourceManager {
 	}
 }
 
-func (rm *ResourceManager) SetLimits(jobID string, cpuLimit int, memoryLimit int, diskIOLimit string) error {
+func (rm *ResourceManager) SetLimits(jobID string, cpuLimit int, memoryLimit int, diskIOWeight int) error {
 	rm.mu.Lock()
 	defer rm.mu.Unlock()
 	rm.limits[jobID] = ResourceLimits{
-		CPULimit:    cpuLimit,
-		MemoryLimit: memoryLimit,
-		DiskIOLimit: diskIOLimit,
+		CPULimit:     cpuLimit,
+		MemoryLimit:  memoryLimit,
+		DiskIOWeight: diskIOWeight,
 	}
 	return nil
 }
 
-func (rm *ResourceManager) GetLimits(jobID string) (int, int, string, error) {
+func (rm *ResourceManager) GetLimits(jobID string) (int, int, int, error) {
 	rm.mu.RLock()
 	defer rm.mu.RUnlock()
 	limits, exists := rm.limits[jobID]
 	if !exists {
-		return 0, 0, "", fmt.Errorf("job ID %s not found", jobID)
+		return 0, 0, 0, fmt.Errorf("job ID %s not found", jobID)
 	}
-	return limits.CPULimit, limits.MemoryLimit, limits.DiskIOLimit, nil
+	return limits.CPULimit, limits.MemoryLimit, limits.DiskIOWeight, nil
 }
 
 func (rm *ResourceManager) CreateCgroup(jobID string) error {
@@ -93,7 +92,7 @@ func (rm *ResourceManager) StartProcessInCgroup(jobID string, cmd *exec.Cmd) err
 	defer cgroupFD.Close()
 
 	// Set resource limits for the job
-	cpuLimit, memoryLimit, diskIOLimit, err := rm.GetLimits(jobID)
+	cpuLimit, memoryLimit, diskIOWeight, err := rm.GetLimits(jobID)
 	if err != nil {
 		return fmt.Errorf("error getting resource limits: %w", err)
 	}
@@ -111,8 +110,8 @@ func (rm *ResourceManager) StartProcessInCgroup(jobID string, cmd *exec.Cmd) err
 	}
 
 	// Set disk I/O limit
-	diskIOLimitPath := filepath.Join(cgroupPath, "io.max")
-	if err := os.WriteFile(diskIOLimitPath, []byte(diskIOLimit), 0644); err != nil {
+	err = os.WriteFile(filepath.Join(cgroupPath, "io.weight"), []byte(strconv.Itoa(diskIOWeight)), 0644)
+	if err != nil {
 		return fmt.Errorf("failed to set disk I/O limit: %w", err)
 	}
 
