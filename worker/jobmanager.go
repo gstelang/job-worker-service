@@ -35,27 +35,31 @@ func NewJobManager(store *JobLogStore) *JobManager {
 
 func getJobEndStatus(cmd *exec.Cmd) (signal, exitCode int) {
 	err := cmd.Wait()
-	signal = 0
-	exitCode = 0
-	if err != nil {
-		if exitError, ok := err.(*exec.ExitError); ok {
-			if status, ok := exitError.Sys().(syscall.WaitStatus); ok {
-				if status.Signaled() {
-					signal = int(status.Signal())
-					fmt.Printf("Process was killed by signal: %d\n", status.Signal())
-				} else {
-					exitCode = status.ExitStatus()
-					fmt.Printf("Process exited with status code: %d\n", status.ExitStatus())
-				}
-			}
-		} else {
-			fmt.Printf("Error waiting for command: %v\n", err)
-		}
-	} else {
-		exitCode = 0
+	if err == nil {
+		return 0, 0
 	}
 
-	return signal, exitCode
+	exitError, ok := err.(*exec.ExitError)
+
+	if !ok {
+		fmt.Printf("Error waiting for command: %v\n", err)
+		return 0, 0
+	}
+
+	status, ok := exitError.Sys().(syscall.WaitStatus)
+	if !ok {
+		fmt.Printf("Error getting wait status: %v\n", err)
+		return 0, 0
+	}
+
+	if status.Signaled() {
+		signal = int(status.Signal())
+		fmt.Printf("Process was killed by signal: %d\n", signal)
+		return signal, 0
+	}
+
+	exitCode = status.ExitStatus()
+	return 0, exitCode
 }
 
 // Start starts a command and logs the output
