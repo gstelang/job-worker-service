@@ -109,10 +109,17 @@ func (rm *ResourceManager) StartProcessInCgroup(jobID string, cmd *exec.Cmd) err
 		return fmt.Errorf("failed to set disk I/O limit: %w", err)
 	}
 
-	// Set the cgroup for the new process before starting it
+	// Set the SysProcAttr to specify cgroup settings for the new process before starting it
+	// added in go 1.22 plus. https://pkg.go.dev/syscall#SysProcAttr
+	// some discussions that were helpful in grokking what is going on: https://github.com/golang/go/issues/51246
+	// Alternative method seems to be using the CLONE_INTO_CGROUP flag which does unix.Clone
+	// Clone can 1> Create a new process 2> control behavior of child process.
+	// Under the hood, UseCgroupFD seems to be doing the same as per here: https://cs.opensource.google/go/go/+/master:src/syscall/exec_linux.go;l=312
 	cmd.SysProcAttr = &syscall.SysProcAttr{
+		// Enable using the cgroup file descriptor
 		UseCgroupFD: true,
-		CgroupFD:    int(cgroupFD.Fd()),
+		// Set the cgroup file descriptor to the opened cgroup directory
+		CgroupFD: int(cgroupFD.Fd()),
 	}
 
 	// Start the command
