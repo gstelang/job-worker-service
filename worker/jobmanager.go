@@ -96,8 +96,9 @@ func (jm *JobManager) Start(command Command) (jobID string, err error) {
 	}
 
 	defer func() {
+		err := jm.resource.CleanupCgroup(jobID)
 		if err != nil {
-			jm.resource.CleanupCgroup(jobID)
+			jm.logger.AddLog(jobID, []byte(fmt.Sprintf("Error cleaning up cgroup: %v", err)))
 		}
 	}()
 
