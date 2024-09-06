@@ -2,6 +2,7 @@ package worker
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"os"
@@ -62,6 +63,29 @@ func getJobEndStatus(cmd *exec.Cmd) (signal, exitCode int) {
 	return 0, exitCode
 }
 
+func readAndLogPipe(jobID string, pipe io.ReadCloser, logger JobLogger) {
+	defer pipe.Close()
+
+	buffer := make([]byte, 1024)
+	for {
+		n, err := pipe.Read(buffer)
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			fmt.Printf("Error reading from pipe: %v\n", err)
+			break
+		}
+		encodedLog := buffer[:n]
+		decodedLog, err := base64.StdEncoding.DecodeString(string(encodedLog))
+		if err != nil {
+			fmt.Printf("Error decoding base64 log: %v\n", err)
+			continue
+		}
+		logger.AddLog(jobID, decodedLog)
+	}
+}
+
 // Start starts a command and logs the output
 func (jm *JobManager) Start(command Command) (jobID string, err error) {
 	jobID = generateUUID()
@@ -116,39 +140,11 @@ func (jm *JobManager) Start(command Command) (jobID string, err error) {
 			jm.details.UpdateJobStatus(jobID, status)
 			jm.details.UpdateJobDetails(jobID, signal, exitCode)
 		}()
+		// read stdout in a separate goroutine
+		go readAndLogPipe(jobID, stdout, jm.logger)
 
-		// read stdout in chunks
-		go func() {
-			buffer := make([]byte, 1024)
-			for {
-				n, err := stdout.Read(buffer)
-				if err != nil {
-					if err == io.EOF {
-						break
-					}
-					fmt.Printf("Error reading from stdout: %v\n", err)
-					break
-				}
-				jm.logger.AddLog(jobID, buffer[:n])
-			}
-		}()
-
-		// read stderr in chunks
-		go func() {
-			buffer := make([]byte, 1024)
-			for {
-				n, err := stderr.Read(buffer)
-				if err != nil {
-					if err == io.EOF {
-						break
-					}
-					fmt.Printf("Error reading from stderr: %v\n", err)
-					break
-				}
-				jm.logger.AddLog(jobID, buffer[:n])
-			}
-		}()
-
+		// read stderr in a separate goroutine
+		go readAndLogPipe(jobID, stderr, jm.logger)
 	}()
 
 	return jobID, nil
