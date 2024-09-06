@@ -16,6 +16,6 @@ RUN go mod download
 COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -o main service/server/main.go
 
-# TODO can do multipath for efficiency but I wanted an env that I can exec and test.
+# TODO can do multipath for efficiency but I wanted an env that I can exec and use golang and test.
 EXPOSE 50051
 CMD ["./main"]
