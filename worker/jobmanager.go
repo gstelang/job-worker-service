@@ -14,8 +14,8 @@ import (
 const (
 	DefaultCPULimit    = 50000     // 50% of 1 core
 	DefaultMemoryLimit = 104857600 // 2^20 bytes = 100 MB.
-	// Set I/O weight to 500 (range is 1-1000, 100 is default)
-	DefaultDiskIOWeight = 500
+	// Fedora does not seem to give me ability to control io.max and hence choosing io.weight
+	DefaultDiskIOWeight = 500 // Set I/O weight to 500 (range is 1-1000, 100 is default)
 )
 
 // JobManager is composed of jobLogger and implements the controller interface
@@ -65,7 +65,9 @@ func getJobEndStatus(cmd *exec.Cmd) (signal, exitCode int) {
 func readAndLogPipe(jobID string, pipe io.ReadCloser, logger JobLogger) {
 	defer pipe.Close()
 
-	// Adjust
+	// if we're dealing with high throughput systems that outputs large file, we can change it to 8 KB or so on.
+	// 1 KB is suitable for logs or short messages ideally
+	// using 4 KB as seem like it is a common default
 	buffer := make([]byte, 4096)
 	for {
 		n, err := pipe.Read(buffer)
@@ -95,17 +97,20 @@ func (jm *JobManager) Start(command Command) (jobID string, err error) {
 		return "", fmt.Errorf("error creating cgroup: %w", err)
 	}
 
+	// set cgroup limits
 	jm.resource.SetLimits(jobID, DefaultCPULimit, DefaultMemoryLimit, DefaultDiskIOWeight)
 
-	// Create the command and attach stdout pipe
+	// Create the command
 	cmd := exec.Command(command.Name, command.Args...)
 
+	// get stdout pipe
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		jm.logger.AddLog(jobID, []byte(fmt.Sprintf("Failed to create stdout pipe: %v", err)))
 		return "", fmt.Errorf("failed to create stdout pipe: %w", err)
 	}
 
+	// get stderr pipe
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
 		return "", fmt.Errorf("error creating stderr pipe: %w", err)
@@ -119,29 +124,25 @@ func (jm *JobManager) Start(command Command) (jobID string, err error) {
 	// Record the process ID
 	jm.details.AddProcessId(jobID, cmd.Process.Pid)
 
-	// Continuously read from the command's stdout
-	go func() {
-		// read stdout in a separate goroutine
-		readAndLogPipe(jobID, stdout, jm.logger)
+	// read stdout
+	readAndLogPipe(jobID, stdout, jm.logger)
 
-		// read stderr in a separate goroutine
-		readAndLogPipe(jobID, stderr, jm.logger)
+	// read stderr
+	readAndLogPipe(jobID, stderr, jm.logger)
 
-		defer func() {
-			defer func() {
-				err := jm.resource.CleanupCgroup(jobID)
-				if err != nil {
-					jm.logger.AddLog(jobID, []byte(fmt.Sprintf("Error cleaning up cgroup: %v", err)))
-				}
-			}()
-			signal, exitCode := getJobEndStatus(cmd)
-			status := StatusExited
-			if signal != 0 {
-				status = StatusSignaled
-			}
-			jm.details.UpdateJobStatus(jobID, status)
-			jm.details.UpdateJobDetails(jobID, signal, exitCode)
-		}()
+	defer func() {
+		signal, exitCode := getJobEndStatus(cmd)
+		status := StatusExited
+		if signal != 0 {
+			status = StatusSignaled
+		}
+		jm.details.UpdateJobStatus(jobID, status)
+		jm.details.UpdateJobDetails(jobID, signal, exitCode)
+
+		err := jm.resource.CleanupCgroup(jobID)
+		if err != nil {
+			jm.logger.AddLog(jobID, []byte(fmt.Sprintf("Error cleaning up cgroup: %v", err)))
+		}
 	}()
 
 	return jobID, nil

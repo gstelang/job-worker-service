@@ -62,6 +62,8 @@ func (rm *ResourceManager) CreateCgroup(jobID string) error {
 	return nil
 }
 
+// Additionally we might need a cronjob to clean up cgroups
+// Example: rmdir job_* inside /sys/fs/cgroup folder
 func (rm *ResourceManager) CleanupCgroup(jobID string) error {
 	cgroupName := fmt.Sprintf("job_%s", jobID)
 	cgroupPath := filepath.Join("/sys/fs/cgroup", cgroupName)
