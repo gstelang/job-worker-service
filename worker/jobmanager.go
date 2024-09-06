@@ -2,7 +2,6 @@ package worker
 
 import (
 	"context"
-	"encoding/base64"
 	"fmt"
 	"io"
 	"os"
@@ -66,7 +65,8 @@ func getJobEndStatus(cmd *exec.Cmd) (signal, exitCode int) {
 func readAndLogPipe(jobID string, pipe io.ReadCloser, logger JobLogger) {
 	defer pipe.Close()
 
-	buffer := make([]byte, 1024)
+	// Adjust
+	buffer := make([]byte, 4096)
 	for {
 		n, err := pipe.Read(buffer)
 		if err != nil {
@@ -76,13 +76,9 @@ func readAndLogPipe(jobID string, pipe io.ReadCloser, logger JobLogger) {
 			fmt.Printf("Error reading from pipe: %v\n", err)
 			break
 		}
-		encodedLog := buffer[:n]
-		decodedLog, err := base64.StdEncoding.DecodeString(string(encodedLog))
-		if err != nil {
-			fmt.Printf("Error decoding base64 log: %v\n", err)
-			continue
+		if n > 0 {
+			logger.AddLog(jobID, buffer[:n])
 		}
-		logger.AddLog(jobID, decodedLog)
 	}
 }
 
