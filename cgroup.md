@@ -16,8 +16,9 @@
 	}
 ```
 Note: seems like the "stress" voluntarily exits before the OOM killer intervenes. It returns exit code as 2 for an internal error rather than SIGKILL.
+
 3.  Check if job_<uuid> cgroup is generated and cleanedup
-```
+```sh
 cd /sys/fs/cgroup
 watch -n 1 "ls -ltr | grep 'job'"
 ```
@@ -43,7 +44,6 @@ while True:
 ```
 4. In this case, you should get signal 9
 
-
 # Testing CPU
 * Run stress with 
 ```json
@@ -59,5 +59,6 @@ while True:
 }
 ```
 * If you do a top, you should be able to see the process consuming around 50% of one core.
+<img width="669" alt="Screenshot 2024-09-06 at 3 08 47 AM" src="https://github.com/user-attachments/assets/26321f1c-3c10-41cd-8d14-95a2e276671d">
 
 # Testing IO.
