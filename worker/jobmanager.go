@@ -127,6 +127,12 @@ func (jm *JobManager) Start(command Command) (jobID string, err error) {
 
 	// Continuously read from the command's stdout
 	go func() {
+		// read stdout in a separate goroutine
+		go readAndLogPipe(jobID, stdout, jm.logger)
+
+		// read stderr in a separate goroutine
+		go readAndLogPipe(jobID, stderr, jm.logger)
+
 		defer func() {
 			signal, exitCode := getJobEndStatus(cmd)
 			status := StatusExited
@@ -136,11 +142,6 @@ func (jm *JobManager) Start(command Command) (jobID string, err error) {
 			jm.details.UpdateJobStatus(jobID, status)
 			jm.details.UpdateJobDetails(jobID, signal, exitCode)
 		}()
-		// read stdout in a separate goroutine
-		go readAndLogPipe(jobID, stdout, jm.logger)
-
-		// read stderr in a separate goroutine
-		go readAndLogPipe(jobID, stderr, jm.logger)
 	}()
 
 	return jobID, nil
