@@ -45,6 +45,19 @@ while True:
 
 
 # Testing CPU
-*
+* Run stress with 
+```json
+// --cpu 1: Spawns one worker to consume CPU.
+{
+    "command_args": [
+       "--cpu",
+       "1",
+       "--timeout",
+       "60"
+    ],
+    "command_name": "stress"
+}
+```
+* If you do a top, you should be able to see the process consuming around 50% of one core.
 
-# Testing IO
+# Testing IO.
