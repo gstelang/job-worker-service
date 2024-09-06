@@ -87,20 +87,6 @@ func (s *server) QueryJob(ctx context.Context, req *pb.QueryJobRequest) (*pb.Que
 	}, nil
 }
 
-// Test
-// 1
-// 2
-// 3
-// 4
-// 5
-// 6
-// 7
-// 8  -> client 1, logCh (100)
-// 9
-// 10 -> client 2, logCh
-// 11
-// 12
-// 13
 func (s *server) StreamLogs(req *pb.StreamLogsRequest, stream pb.JobWorker_StreamLogsServer) error {
 
 	if err := authorize(stream.Context(), "StreamLogs"); err != nil {
