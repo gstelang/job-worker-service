@@ -125,12 +125,12 @@ func (jm *JobManager) Start(command Command) (jobID string, err error) {
 	jm.details.AddProcessId(jobID, cmd.Process.Pid)
 
 	// read stdout
-	readAndLogPipe(jobID, stdout, jm.logger)
+	go readAndLogPipe(jobID, stdout, jm.logger)
 
 	// read stderr
-	readAndLogPipe(jobID, stderr, jm.logger)
+	go readAndLogPipe(jobID, stderr, jm.logger)
 
-	defer func() {
+	go func() {
 		signal, exitCode := getJobEndStatus(cmd)
 		status := StatusExited
 		if signal != 0 {
