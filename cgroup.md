@@ -1,4 +1,4 @@
-# Testing memory: Example 1
+# Testing memory limits: Example 1
 
 1. Set memory.max to 100 MB 
 2. Pass the command such as
@@ -17,7 +17,7 @@
 ```
 Note: seems like the "stress" voluntarily exits before the OOM killer intervenes. It returns exit code as 2 for an internal error rather than SIGKILL.
 3.  Check if job_<uuid> cgroup is generated and cleanedup
-```
+```sh
 cd /sys/fs/cgroup
 watch -n 1 "ls -ltr | grep 'job'"
 ```
@@ -27,7 +27,7 @@ watch -n 1 "ls -ltr | grep 'job'"
 
 1. Set memory.max to 100 MB 
 2. Pass the command such as
-```
+```json
 {
     "command_args": [
         "/home/fedora/job-worker-service/memory_hog.py"
@@ -66,7 +66,7 @@ while True:
 ```
 // copy block size of 4 MB 20 times i.e 80 MB file
 // oflag=direct -> bypasses cache and writes directly
-dd if=/dev/zero of=/home/fedora/abc-1.txt bs=4M count=20 oflag=direct
+// dd if=/dev/zero of=/home/fedora/abc-1.txt bs=4M count=20 oflag=direct
 
 {
     "command_args": [
