@@ -128,9 +128,9 @@ creds := credentials.NewTLS(&tls.Config{
 * SHA-256 will be used as a hashing algorithm for signing certs.
 * CA and server certs will be valid for 365 days whereas a shorter validity period (45 days) will be provided for client certs. This is to emphasize rotation and renewal. 
 
-# cgroup
-
-1. Create a new cgroup directory with a name that includes the <jobid_uuid> to ensure uniqueness.
+# cgroup 
+Assumption: linux machine is using cgroup v2
+1. Create a new cgroup directory (under /sys/fs/cgroup/) with a name that includes the <jobid_uuid> to ensure uniqueness.
 2. Since cgroups are mounted as a filesystem, get the file descriptor of that directory
 3. Set the CPU, memory, and I/O weight limits for the cgroup using the respective files (cpu.max, memory.max, and io.weight).
 ```
