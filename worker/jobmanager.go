@@ -95,13 +95,6 @@ func (jm *JobManager) Start(command Command) (jobID string, err error) {
 		return "", fmt.Errorf("error creating cgroup: %w", err)
 	}
 
-	defer func() {
-		err := jm.resource.CleanupCgroup(jobID)
-		if err != nil {
-			jm.logger.AddLog(jobID, []byte(fmt.Sprintf("Error cleaning up cgroup: %v", err)))
-		}
-	}()
-
 	jm.resource.SetLimits(jobID, DefaultCPULimit, DefaultMemoryLimit, DefaultDiskIOWeight)
 
 	// Create the command and attach stdout pipe
@@ -129,12 +122,18 @@ func (jm *JobManager) Start(command Command) (jobID string, err error) {
 	// Continuously read from the command's stdout
 	go func() {
 		// read stdout in a separate goroutine
-		go readAndLogPipe(jobID, stdout, jm.logger)
+		readAndLogPipe(jobID, stdout, jm.logger)
 
 		// read stderr in a separate goroutine
-		go readAndLogPipe(jobID, stderr, jm.logger)
+		readAndLogPipe(jobID, stderr, jm.logger)
 
 		defer func() {
+			defer func() {
+				err := jm.resource.CleanupCgroup(jobID)
+				if err != nil {
+					jm.logger.AddLog(jobID, []byte(fmt.Sprintf("Error cleaning up cgroup: %v", err)))
+				}
+			}()
 			signal, exitCode := getJobEndStatus(cmd)
 			status := StatusExited
 			if signal != 0 {
