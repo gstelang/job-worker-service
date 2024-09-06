@@ -115,13 +115,6 @@ func (rm *ResourceManager) StartProcessInCgroup(jobID string, cmd *exec.Cmd) err
 		CgroupFD:    int(cgroupFD.Fd()),
 	}
 
-	// Open the cgroup.procs file
-	cgroupProcs, err := os.OpenFile(filepath.Join(cgroupPath, "cgroup.procs"), os.O_WRONLY, 0644)
-	if err != nil {
-		return fmt.Errorf("error opening cgroup.procs: %w", err)
-	}
-	defer cgroupProcs.Close()
-
 	// Start the command
 	err = cmd.Start()
 	if err != nil {
