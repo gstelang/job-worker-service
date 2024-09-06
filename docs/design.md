@@ -128,15 +128,19 @@ creds := credentials.NewTLS(&tls.Config{
 * SHA-256 will be used as a hashing algorithm for signing certs.
 * CA and server certs will be valid for 365 days whereas a shorter validity period (45 days) will be provided for client certs. This is to emphasize rotation and renewal. 
 
-# Resource Limiting Strategy
-* The optimal approach to setting resource limits is to monitor the current system load and enforce limits dynamically when the load average exceeds a threshold. Unix tools located under `/proc/` can provide this system load information. Alternate strategy is to use a time-based resource scheduling strategy based on peak/off-peak hours.
-* For simplicity, following static values will be set per job:
+# cgroup
+
+1. Create a new cgroup directory with a name that includes the <jobid_uuid> to ensure uniqueness.
+2. Since cgroups are mounted as a filesystem, get the file descriptor of that directory
+3. Set the CPU, memory, and I/O weight limits for the cgroup using the respective files (cpu.max, memory.max, and io.weight).
 ```
-cpu-limit: 512 (half of the CPU share)
-memory-limit: 500M
-disk-limit: 500
+cpu-limit using cpu.max: 50000 // 50% of 1 core.
+memory-limit using memory.max: // 100 MB
+io-weight using io.weight: 500 (1-1000). Higher means higher priority for disk I/O
 ```
-* After a job completes or is terminated, the associated cgroup will be cleaned up to reclaim resources and prevent system clutter.
+4. Use the SysProcAttr struct to specify that the new process should be started in the cgroup associated with the file descriptor. This ensures that the process is started in the correct cgroup before start without needing to write its PID to cgroup.procs which leaves a small window where the process can run unconstrained before being constrained by cgroup settings.
+5. Start the process using exec.Command.Start().
+6. After the job completes or is terminated, clean up the associated cgroup to prevent system clutter.
 
 # Out of scope
 * State of job will not persist after restarts i.e no persistent storage such as log files or local sqllite database. 
