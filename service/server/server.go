@@ -97,8 +97,15 @@ func (s *server) StreamLogs(req *pb.StreamLogsRequest, stream pb.JobWorker_Strea
 
 	for {
 		select {
-		case logEntry := <-logChannel:
-			s.sendLogToClient(jobID, logEntry)
+		case logEntry, ok := <-logChannel:
+			if !ok {
+				fmt.Printf("Log channel closed for jobID %s", jobID)
+				return nil
+			}
+			if err := s.sendLogToClient(jobID, logEntry); err != nil {
+				fmt.Printf("Failed to send log entry for jobID %s: %v", jobID, err)
+				return err
+			}
 		case <-stream.Context().Done():
 			return nil
 		}
@@ -124,13 +131,19 @@ func (s *server) removeClient(jobID string, stream pb.JobWorker_StreamLogsServer
 	}
 }
 
-func (s *server) sendLogToClient(jobID string, logEntry []byte) {
+func (s *server) sendLogToClient(jobID string, logEntry []byte) error {
 	s.streamsMu.Lock()
-	clients := s.clients[jobID]
-	s.streamsMu.Unlock()
+	defer s.streamsMu.Unlock()
+	clients, ok := s.clients[jobID]
+	if !ok {
+		return fmt.Errorf("no clients found for jobID %s", jobID)
+	}
 	for _, client := range clients {
 		if err := client.Send(&pb.StreamLogsResponse{Message: logEntry}); err != nil {
+			fmt.Printf("Error sending log to client for jobID %s: %v", jobID, err)
 			s.removeClient(jobID, client)
+			return err
 		}
 	}
+	return nil
 }
