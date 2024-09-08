@@ -80,6 +80,7 @@ func readAndLogPipe(jobID string, pipe io.ReadCloser, logger JobLogger) {
 			break
 		}
 		if n > 0 {
+			// fmt.Printf("Read %d bytes: %q\n", n, buffer[:n])
 			logger.AddLog(jobID, buffer[:n])
 		}
 	}
