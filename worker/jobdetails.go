@@ -11,6 +11,8 @@ type JobSummary struct {
 // JobDetails contains job summary details and the logs.
 type JobDetails struct {
 	JobSummary
+	// Need a RingBuffer to hold the most recent entries for scalability since this does not persist to disk.
+	// Here's my implementation: https://github.com/gstelang/golang-data-structures/blob/main/other/ringbuffer.go
 	Logs [][]byte // store logs in their raw byte form, accommodating any non-UTF-8 characters.
 }
 
