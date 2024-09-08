@@ -25,7 +25,8 @@ type JobManager struct {
 	resource ResourceController
 }
 
-func NewJobManager(store *JobLogStore) *JobManager {
+func NewJobManager() *JobManager {
+	store := NewJobLogStore()
 	return &JobManager{
 		logger:   store,
 		details:  store,
@@ -124,6 +125,7 @@ func (jm *JobManager) Start(command Command) (jobID string, err error) {
 	// Record the process ID
 	jm.details.AddProcessId(jobID, cmd.Process.Pid)
 
+	// TODO: Possibly a better way to do CombinedOutput.
 	// read stdout
 	go readAndLogPipe(jobID, stdout, jm.logger)
 

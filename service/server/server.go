@@ -12,7 +12,6 @@ import (
 
 type server struct {
 	pb.UnimplementedJobWorkerServer
-	logStore   *worker.JobLogStore
 	jobManager *worker.JobManager
 	clients    map[string][]pb.JobWorker_StreamLogsServer // jobID -> client streams
 	streamsMu  sync.Mutex
