@@ -10,6 +10,9 @@ import (
 	"syscall"
 )
 
+// mount | grep cgroup
+// cgroup2 on /sys/fs/cgroup type cgroup2 (rw,nosuid,nodev,noexec,relatime,seclabel,nsdelegate,memory_recursiveprot)
+// With v2 heirarchy, this is the most common path though administrator can configure it differently.
 const cgroupPath = "/sys/fs/cgroup"
 
 type ResourceLimits struct {
