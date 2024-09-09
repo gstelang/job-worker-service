@@ -10,6 +10,8 @@ import (
 	"syscall"
 )
 
+const cgroupPath = "/sys/fs/cgroup"
+
 type ResourceLimits struct {
 	CPULimit     int
 	MemoryLimit  int
@@ -50,7 +52,7 @@ func (rm *ResourceManager) GetLimits(jobID string) (int, int, int, error) {
 
 func (rm *ResourceManager) CreateCgroup(jobID string) error {
 	cgroupName := fmt.Sprintf("job_%s", jobID)
-	cgroupPath := filepath.Join("/sys/fs/cgroup", cgroupName)
+	cgroupPath := filepath.Join(cgroupPath, cgroupName)
 	err := os.Mkdir(cgroupPath, 0755)
 	if err != nil {
 		if !os.IsExist(err) {
@@ -66,7 +68,7 @@ func (rm *ResourceManager) CreateCgroup(jobID string) error {
 // Example: rmdir job_* inside /sys/fs/cgroup folder
 func (rm *ResourceManager) CleanupCgroup(jobID string) error {
 	cgroupName := fmt.Sprintf("job_%s", jobID)
-	cgroupPath := filepath.Join("/sys/fs/cgroup", cgroupName)
+	cgroupPath := filepath.Join(cgroupPath, cgroupName)
 	err := os.RemoveAll(cgroupPath)
 	if err != nil {
 		return fmt.Errorf("error removing cgroup: %w", err)
@@ -76,9 +78,9 @@ func (rm *ResourceManager) CleanupCgroup(jobID string) error {
 
 func (rm *ResourceManager) StartProcessInCgroup(jobID string, cmd *exec.Cmd) error {
 	cgroupName := fmt.Sprintf("job_%s", jobID)
-	cgroupPath := filepath.Join("/sys/fs/cgroup", cgroupName)
+	cgroupPath := filepath.Join(cgroupPath, cgroupName)
 
-	cgroupDir := filepath.Join("/sys/fs/cgroup", cgroupName)
+	cgroupDir := filepath.Join(cgroupPath, cgroupName)
 	cgroupFD, err := os.Open(cgroupDir)
 	if err != nil {
 		return fmt.Errorf("error opening cgroup directory: %w", err)
