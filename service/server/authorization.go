@@ -27,6 +27,8 @@ func isAuthorized(role, methodName string) bool {
 }
 
 func authorize(ctx context.Context, methodName string) error {
+	// Hardcoded here but ideally I would store OIDs in AWS secrets manager if you're on AWS or similar.
+	// These will be loaded dynamically in containerized env as ENV variables
 	OIDRoleMapping := map[string]string{
 		"1.3.6.1.4.1.12345.1.1": "Admin",
 		"1.3.6.1.4.1.12345.1.2": "User",

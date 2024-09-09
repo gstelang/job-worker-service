@@ -11,7 +11,9 @@ import (
 
 func setupTLS() credentials.TransportCredentials {
 
-	// Load client certificates
+	// Load client certificates for admin
+	// Hardcoding for admin
+	// Ideally stored in a secret manager service on AWS/K8s serets or similar
 	cert, err := tls.LoadX509KeyPair("./certs/client/admin/admin.crt", "./certs/client/admin/admin.key")
 	if err != nil {
 		log.Fatalf("failed to load client certificate: %v", err)
