@@ -8,6 +8,8 @@ import (
 	"google.golang.org/grpc/peer"
 )
 
+// TODO: missed this. Move this logic to use UnaryClient/Streaming interceptors.
+
 func isAuthorized(role, methodName string) bool {
 	roleAccess := map[string][]string{
 		"StartJob":   {"Admin"},
