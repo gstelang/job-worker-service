@@ -16,6 +16,14 @@ RUN go mod download
 COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -o main service/server/main.go
 
-# TODO can do multipath for efficiency but I wanted an env that I can exec and use golang and test.
+# Removing multi-stage so I can exec and use golang although you do need a non-minimalistic linux distro
+# such as Fedora to test memory or IO controller.
+
+# Final stage
+# FROM registry.access.redhat.com/ubi9/ubi:9.4-1214
+# WORKDIR /app
+# COPY --from=build /app/main .
+# COPY certs/ certs/
+
 EXPOSE 50051
 CMD ["./main"]
