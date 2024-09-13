@@ -1,5 +1,3 @@
-# job-worker-service
-
 # Testing
 1. Basic start/stop/query/stream
 ```
