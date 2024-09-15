@@ -96,19 +96,19 @@ func (rm *ResourceManager) StartProcessInCgroup(jobID string, cmd *exec.Cmd) err
 	}
 
 	// set memory limit
-	err = os.WriteFile(filepath.Join(cgroupPath, "memory.max"), []byte(strconv.Itoa(memoryLimit)), 0644)
+	err = os.WriteFile(filepath.Join(cgroupDir, "memory.max"), []byte(strconv.Itoa(memoryLimit)), 0644)
 	if err != nil {
 		return fmt.Errorf("error setting memory limit: %w", err)
 	}
 
 	// Set CPU limit
-	err = os.WriteFile(filepath.Join(cgroupPath, "cpu.max"), []byte(fmt.Sprintf("%d 100000", cpuLimit)), 0644)
+	err = os.WriteFile(filepath.Join(cgroupDir, "cpu.max"), []byte(fmt.Sprintf("%d 100000", cpuLimit)), 0644)
 	if err != nil {
 		return fmt.Errorf("error setting CPU limit: %w", err)
 	}
 
 	// Set disk I/O limit
-	err = os.WriteFile(filepath.Join(cgroupPath, "io.weight"), []byte(strconv.Itoa(diskIOWeight)), 0644)
+	err = os.WriteFile(filepath.Join(cgroupDir, "io.weight"), []byte(strconv.Itoa(diskIOWeight)), 0644)
 	if err != nil {
 		return fmt.Errorf("failed to set disk I/O limit: %w", err)
 	}
