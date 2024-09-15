@@ -81,9 +81,8 @@ func (rm *ResourceManager) CleanupCgroup(jobID string) error {
 
 func (rm *ResourceManager) StartProcessInCgroup(jobID string, cmd *exec.Cmd) error {
 	cgroupName := fmt.Sprintf("job_%s", jobID)
-	cgroupPath := filepath.Join(cgroupPath, cgroupName)
-
 	cgroupDir := filepath.Join(cgroupPath, cgroupName)
+
 	cgroupFD, err := os.Open(cgroupDir)
 	if err != nil {
 		return fmt.Errorf("error opening cgroup directory: %w", err)
